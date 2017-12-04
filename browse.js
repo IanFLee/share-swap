@@ -24,6 +24,9 @@ var model = {
   viewShare : {
     whichShare : null
   },
+  createMessage : {
+    prevMessage : null
+  },
   render : 'view all'
 };
 
@@ -63,29 +66,33 @@ var compCollection = {
       desc.className = "mdl-card__supporting-text";
       desc.innerHTML = settings.descInnerHTML;
 
-      var view = doc.ce();
-      view.className = "mdl-card__actions mdl-card--border";
-      var viewBtn = document.createElement('a');
-      viewBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      viewBtn.innerHTML = settings.btnText;
-      view.appendChild(viewBtn);
+      var btn = doc.ce();
+      btn.className = "mdl-card__actions mdl-card--border";
+      var btnAnchor = document.createElement('a');
+      btnAnchor.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
+      btnAnchor.innerHTML = settings.btnText;
+      btn.appendChild(btnAnchor);
 
-      doc.amc(listing, [img, desc, view]);
+      doc.amc(listing, [img, desc, btn]);
 
-      
-      var inputC = function() {
-          var fn = function() {
-            model.viewShare.whichShare = currentListing;
-            model.render = 'view share';
-            update.determine();
-          };
-          listen(viewBtn, 'click', fn);
-        }
-      inputC();
+      (quantity === 'many') ?
+      listen(btn, 'click', function() {
+        model.viewShare.whichShare = currentListing;
+        model.render = 'view share';
+        update.determine();
+      }) :
+      listen(btn, 'click', function() {
+        model.render = 'create message';
+        update.determine();
+}) ;
+
       return listing;
 
     },
     message : function(message, i) {
+      
+      // create an individual message
+      
       var details = model.details;
       
       var messageCard = mdl.col(12);
@@ -97,7 +104,7 @@ var compCollection = {
       subjTxt.innerHTML = message.subj;
       subjDiv.appendChild(subjTxt);
 
-
+// why do we need a unique id on the buttons?
       var msgDiv = doc.ce();
       msgDiv.id = 'msgDiv'+i;
       msgDiv.className = "mdl-card__actions mdl-card--border";
@@ -137,7 +144,6 @@ var compCollection = {
       deleteBtn.innerHTML = 'Delete';
       btnDiv.appendChild(deleteBtn);
       
-
       listen(openBtn, 'click', function() {
         let openBtnEl = doc.id('openBtn'+i);
         let msgDivEl = doc.id('msgDiv'+i);
@@ -153,6 +159,7 @@ var compCollection = {
 
       });
       listen(replyBtn, 'click', function() {
+        model.createMessage.prevMessage = message;
         model.render = 'create message';
         update.determine();
       });
@@ -162,8 +169,6 @@ var compCollection = {
         update.determine();
       });
 
-      
-      
       
       doc.amc(messageCard, [subjDiv, msgDiv, btnDiv]);
     
@@ -188,126 +193,23 @@ var compCollection = {
   },
   viewMessages : function(model) {
     
+    // loop thru and display all messages
+    
     var details = model.details;
     var component = mdl.ccg();
     
     // for each message:
     for (let i = 0; i<details.messages.length; i++) {
-      let message = details.messages[i];
-      // pass message and i
-      var messageCard = mdl.col(12);
-      messageCard.className += " message-card mdl-card mdl-shadow--2dp";
-    
-      var subjDiv = doc.ce();
-      subjDiv.className = "mdl-card__title";
-      var subjTxt = doc.ce('h4');
-      subjTxt.innerHTML = message.subj;
-      subjDiv.appendChild(subjTxt);
-
-
-      var msgDiv = doc.ce();
-      msgDiv.id = 'msgDiv'+i;
-      msgDiv.className = "mdl-card__actions mdl-card--border";
-      function boolTruncMsg(open) {
-        let msgTxt = doc.ce('p');
-        let messageBody;
-        if (!open) {
-          messageBody = message.body.substring(0, 150)+' ...';
-        } else {
-          messageBody = message.body;
-        }
-        msgTxt.innerHTML = messageBody;
-        msgDiv.appendChild(msgTxt);
-        return msgTxt;
-      }
-      
-      msgDiv.appendChild(boolTruncMsg(false));
-
-      var btnDiv = doc.ce();
-      btnDiv.className = "mdl-card__actions mdl-card--border";
-    
-      var openBtn = document.createElement('a');
-      openBtn.id = 'openBtn'+i;
-      openBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      openBtn.innerHTML = 'Open';
-      btnDiv.appendChild(openBtn);
-    
-      var replyBtn = document.createElement('a');
-      replyBtn.id = 'replyBtn'+i;
-      replyBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      replyBtn.innerHTML = 'Reply';
-      btnDiv.appendChild(replyBtn);
-    
-      var deleteBtn = document.createElement('a');
-      replyBtn.id = 'deleteBtn'+i;
-      deleteBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      deleteBtn.innerHTML = 'Delete';
-      btnDiv.appendChild(deleteBtn);
-      
-
-      listen(openBtn, 'click', function() {
-        let openBtnEl = doc.id('openBtn'+i);
-        let msgDivEl = doc.id('msgDiv'+i);
-        if (openBtnEl.innerHTML === 'Open') {
-          msgDivEl.innerHTML = '';
-          msgDivEl.appendChild(boolTruncMsg(true));
-          openBtnEl.innerHTML = 'Close';
-        } else {
-          msgDivEl.innerHTML = '';
-          msgDivEl.appendChild(boolTruncMsg(false));
-          openBtnEl.innerHTML = 'Open';
-        }
-
-      });
-      listen(replyBtn, 'click', function() {
-        model.render = 'create message';
-        update.determine();
-      });
-      listen(deleteBtn, 'click', function() {
-        details.messages.splice(i, 1);
-        localStorage.setItem('details', JSON.stringify(details));
-        update.determine();
-        // delete details.messages[i]
-        // reset details in localSTrogae
-        // update determine
-      });
-
-      
-      
-      
-      doc.amc(messageCard, [subjDiv, msgDiv, btnDiv]);
-    
-      
-      
+      var messageCard = compCollection.globalFns.message(details.messages[i], i);
       component.appendChild(messageCard);
     }
-
-      /*
-      var inputC = function() {
-          var fn = function() {
-            model.viewShare.whichShare = currentListing;
-            model.render = 'view share';
-            update.determine();
-          };
-          listen(viewBtn, 'click', fn);
-        }
-      inputC();
-      */
-    
-      
-    
+    if (details.messages.length < 1) {
+      let noMessages = doc.ce('h3');
+      noMessages.innerHTML = 'You have no new messages';
+      component.appendChild(noMessages);
+    }
       return component;
-    
-    // if no messages, <p> no messages </p>
-    // for each message
-    // make messsageCard
-    // return message grid
-    /*
-    var messageCard = mdl.col(12);
-    messageCard.className += " message-card mdl-card mdl-shadow--2dp";
-    cl(messageCard);
-    return messageCard;
-    */
+
   },
   createMessage : function() {
     // create same message card
@@ -317,51 +219,59 @@ var compCollection = {
     
     
     var messageCard = mdl.col(12);
-      messageCard.className += " message-card mdl-card mdl-shadow--2dp mdl-grid";
-    
-    
-      // SINGLE LINE h4 FORM GOES HERE
-      var subjDiv = doc.ce();
-      subjDiv.className = "mdl-card__title mdl-cell--12-col"; 
-      var subjTxt = mdl.input('createMsgSubj', 'Message Subject');
-      subjDiv.appendChild(subjTxt);
-    
-      // MULTI LINE p FORM GOES HERE
-      var msgDiv = doc.ce();
-      msgDiv.className = "mdl-card__actions mdl-card--border mdl-grid";
-      var msgTxt = mdl.multiInput('createMsgBody', 'Message Body', 10);
-      msgDiv.appendChild(msgTxt);
-      
+    messageCard.className += " message-card mdl-card mdl-shadow--2dp mdl-grid";
 
-      var btnDiv = doc.ce();
-      btnDiv.className = "mdl-card__actions mdl-card--border";
-    
-      var sendBtn = doc.ce('a');
-      sendBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      sendBtn.innerHTML = 'Send';
-      btnDiv.appendChild(sendBtn);
-    
-      var saveBtn = doc.ce('a');
-      saveBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      saveBtn.innerHTML = 'Save Draft';
-      btnDiv.appendChild(saveBtn);
-    
-      var discardBtn = doc.ce('a');
-      discardBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
-      discardBtn.innerHTML = 'Discard Draft';
-      btnDiv.appendChild(discardBtn);
 
-      doc.amc(messageCard, [subjDiv, msgDiv, btnDiv]);
-    
-    
-      listen(sendBtn, 'click', function() {});
-      listen(saveBtn, 'click', function() {});
-      listen(discardBtn, 'click', function() {});
+    // SINGLE LINE h4 FORM GOES HERE
+    var subjDiv = doc.ce();
+    subjDiv.className = "mdl-card__title mdl-cell--12-col"; 
+    var subjTxt = mdl.input('createMsgSubj', 'Message Subject');
+    subjDiv.appendChild(subjTxt);
 
-      component.appendChild(messageCard);
-      return component;
+    // MULTI LINE p FORM GOES HERE
+    var msgDiv = doc.ce();
+    msgDiv.className = "mdl-card__actions mdl-card--border mdl-grid";
+    var msgTxt = mdl.multiInput('createMsgBody', 'Message Body', 10);
+    msgDiv.appendChild(msgTxt);
+
+
+    var btnDiv = doc.ce();
+    btnDiv.className = "mdl-card__actions mdl-card--border";
+
+    var sendBtn = doc.ce('a');
+    sendBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
+    sendBtn.innerHTML = 'Send';
+    btnDiv.appendChild(sendBtn);
+
+    var saveBtn = doc.ce('a');
+    saveBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
+    saveBtn.innerHTML = 'Save Draft';
+    btnDiv.appendChild(saveBtn);
+
+    var discardBtn = doc.ce('a');
+    discardBtn.className = "mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect";
+    discardBtn.innerHTML = 'Discard Draft';
+    btnDiv.appendChild(discardBtn);
+
+    doc.amc(messageCard, [subjDiv, msgDiv, btnDiv]);
+
+
+    listen(sendBtn, 'click', function() {
+      cl(doc.id('createMsgBody').target.value);
+    });
+    listen(saveBtn, 'click', function() {});
+    listen(discardBtn, 'click', function() {
+      model.render = 'view messages';
+      update.determine();
+    });
+
+    component.appendChild(messageCard);
+    component.appendChild(compCollection.globalFns.message(model.createMessage.prevMessage));
+    return component;
+  },
+  conversation : function() {
+    
   }
-  
 };
 
 var update = {
@@ -389,10 +299,14 @@ update.determine();
 
 var initDashboard = function() {
   doc.id('myUsername').innerHTML = model.details.user;
-  listenAt('viewMessages', 'click', function() {
+  listenAt('viewMessagesBtn', 'click', function() {
     model.render = 'view messages';
     update.determine();
-  })
+  });
+  listenAt('findSwapsBtn', 'click', function() {
+    model.render = 'view all';
+    update.determine();
+  });
     };
 
 initDashboard();
