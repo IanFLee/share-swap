@@ -1,0 +1,30 @@
+body {
+  background: url("https://s-media-cache-ak0.pinimg.com/originals/3e/83/f0/3e83f0dd47aa860f63ac99fa8bfd538c.jpg") center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+#wrapper {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  grid-template-areas:
+    ". . . . . . ."
+    ". . l l l . ."
+    ". . l l l . ."
+    ". . l l l . ."
+    ". . . . . . .";
+}
+
+
+#loginForm {
+  grid-area: l;
+  background-color: white;
+  border: solid;
+  display: flex;
+  flex-direction: column;
+}
+
+.mdl-textfield {
+  left: 5%;
+}
