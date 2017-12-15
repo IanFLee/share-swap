@@ -462,7 +462,7 @@ var compCollection = {
       var footerTxt = doc.ce('p');
       footerTxt.innerHTML = '<h4>This website was created by asparism. Contact:</h4>'+
         '<h5>asparism/Ian Lee'+
-        '<ul><li>email: ianforrestlee@gmail.com</li>'+
+        '<ul><li>email: <a href="mailto:ianforrestlee@gmail.com" target="_blank">IanForrestLee@gmail.com</a></li>'+
         '<li>portfolio: <a href="" target="_blank">#portfolio link</a></li>'+
         '<li>github: <a href="https://github.com/asparism" target="_blank">github.com/asparism</a></li>'+
         '<li>codepen: <a href="https://codepen.io/asparism" target="_blank">codepen.io/asparism</a></li></ul></h5>';
